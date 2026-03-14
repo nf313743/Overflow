@@ -15,7 +15,9 @@ public class Question
     
     [MaxLength(36)]
     public required string AskerId { get; set; }
-    
+
+    public required string AskerDisplayName { get; set; }
+
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
    
     public DateTime? UpdatedAt { get; set; }
@@ -28,7 +30,7 @@ public class Question
    
     public int Votes { get; set; }
     
-    public int AnswerCount { get; set; }
+    // public int AnswerCount { get; set; }
     
     // navigation properties
     //public List<Answer> Answers { get; set; } = [];
