@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using QuestionService.Data;
 using QuestionService.DTOs;
 using QuestionService.Models;
@@ -15,6 +16,13 @@ public class QuestionsController(QuestionDbContext db) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Question>> CreateQuestion(CreateQuestionDto dto)
     {
+
+
+        var validTags = await db.Tags.Where(x => dto.Tags.Contains(x.Slug)).ToListAsync();
+        var missing = dto.Tags.Except(validTags.Select(x => x.Slug)).ToList();
+        
+        if (missing.Any()) return BadRequest($"Invalid tags: {string.Join(", ", missing)}");
+        
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         var name = User.FindFirstValue("name");
 
@@ -34,4 +42,31 @@ public class QuestionsController(QuestionDbContext db) : ControllerBase
         
         return Created($"questions/{question.Id}", question);
     }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Question>>> GetQuestions(string? tag)
+    {
+        var query = db.Questions.AsQueryable();
+
+        if (!string.IsNullOrEmpty(tag))
+        {
+            query = query.Where(x => x.TagSlugs.Contains(tag));
+        }
+
+        return await query.OrderByDescending(x => x.CreatedAt).ToListAsync();
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Question>> GetQuestion(string id)
+    {
+        var question = await db.Questions.FindAsync(id);
+        
+        if (question is null) return NotFound();
+
+        await db.Questions.Where(x => x.Id == id)
+            .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.ViewCount, x => x.ViewCount + 1));
+
+        return question;
+    }
+    
 }
