@@ -12,7 +12,7 @@ var postgres = builder.AddPostgres("postgres", port: 5432)
 var typesenseApiKey = builder.AddParameter("typesense-api-key", secret: true);
 
 var typesense = builder.AddContainer("typesense", "typesense/typesense", "29.0")
-    .WithArgs("--data-dir", "/data", "--api-key", "xyz", "--enable-cors")
+    .WithArgs("--data-dir", "/data", "--api-key", "abc", "--enable-cors")
     .WithVolume("typesense-data", "/data")
     .WithHttpEndpoint(8108, 8108, name: "typesense");
 
