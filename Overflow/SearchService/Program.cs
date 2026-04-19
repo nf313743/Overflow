@@ -1,8 +1,12 @@
 using System.Text.RegularExpressions;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using SearchService.Data;
 using SearchService.Models;
 using Typesense;
 using Typesense.Setup;
+using Wolverine;
+using Wolverine.RabbitMQ;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +37,23 @@ builder.Services.AddTypesenseClient(config =>
         new(uri.Host, uri.Port.ToString(), uri.Scheme)
     };
 });
+
+
+builder.Services.AddOpenTelemetry().WithTracing(x =>
+{
+    x.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Environment.ApplicationName))
+        .AddSource("Wolverine");
+
+});
+builder.Host.UseWolverine(opts =>
+{
+    opts.UseRabbitMqUsingNamedConnection("messaging").AutoProvision();
+    opts.ListenToRabbitQueue("questions.search", cfg =>
+    {
+        cfg.BindExchange("questions");
+    });
+});
+
 
 var app = builder.Build();
 
@@ -75,6 +96,21 @@ app.MapGet("/search", async (string query, ITypesenseClient client) =>
 
 });
 
+
+app.MapGet("/search/similar-titles", async (string query, ITypesenseClient tsClient) =>
+{
+    var searchParams = new SearchParameters(query, "title");
+
+    try
+    {
+        var result = await tsClient.Search<SearchQuestion>("questions", searchParams);
+        return Results.Ok(result.Hits.Select(hit => hit.Document));
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem("Typesense search failed: " + ex.Message);
+    }
+});
 
 using var scope = app.Services.CreateScope();
 var client = scope.ServiceProvider.GetRequiredService<ITypesenseClient>();
