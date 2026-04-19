@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Hosting;
+
 #pragma warning disable ASPIRECERTIFICATES001
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -6,14 +8,15 @@ var compose = builder.AddDockerComposeEnvironment("production")
     .WithDashboard(dashboard => dashboard.WithHostPort(8080));
 
 var keycloak = builder.AddKeycloak("keycloak", 6001)
+    // .WithEndpoint(6001, 8080, "keycloak", isExternal: true)
+   // .WithoutHttpsCertificate()
     .WithDataVolume("keycloak-data")
     .WithRealmImport("../infra/realms")
     .WithEnvironment("KC_HTTP_ENABLED", "true")
     .WithEnvironment("KC_HOSTNAME_STRICT", "false")
-    .WithEndpoint(6001, 8080, "keycloak", isExternal:true);
-
-    // .WithEnvironment("VIRTUAL_HOST", "overflow-id.trycatchlearn.com")
-    // .WithEnvironment("VIRTUAL_PORT", "8080")
+    .WithEnvironment("VIRTUAL_HOST", "id.overflow.local")
+    .WithEnvironment("VIRTUAL_PORT", "8080");
+   // .WithContainerRuntimeArgs("--add-host=id.overflow.local:host-gateway");
     // .WithEnvironment("LETSENCRYPT_HOST", "overflow-id.trycatchlearn.com")
     // .WithEnvironment("LETSENCRYPT_EMAIL", "trycatchlearn@outlook.com");
 
@@ -66,6 +69,19 @@ var yarp = builder.AddYarp("gateway")
     .WithoutHttpsCertificate()
     .WithEnvironment("ASPNETCORE_URLS", "http://*:8001")
     .WithEndpoint(port: 8001, scheme: "http", targetPort: 8001, name: "gateway", isExternal: true)
-    .WithContainerRuntimeArgs("--add-host=host.docker.internal:host-gateway");
+    .WithContainerRuntimeArgs("--add-host=host.docker.internal:host-gateway")
+    .WithEnvironment("VIRTUAL_HOST", "api.overflow.local")
+    .WithEnvironment("VIRTUAL_PORT", "8001");;
+
+if (!builder.Environment.IsDevelopment())
+{
+    builder.AddContainer("nginx-proxy", "nginxproxy/nginx-proxy", "1.8")
+        .WithEndpoint(80, 80, "nginx", isExternal: true)
+        // .WithEndpoint(443, 443, "nginx-ssl", isExternal: true)
+        .WithBindMount("/var/run/docker.sock", "/tmp/docker.sock", true);
+    // .WithVolume("certs", "/etc/nginx/certs", false)
+    // .WithVolume("html", "/usr/share/nginx/html", false)
+    // .WithVolume("vhost", "/etc/nginx/vhost.
+}
 
 builder.Build().Run();
