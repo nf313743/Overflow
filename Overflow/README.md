@@ -1,0 +1,1 @@
+`dotnet ef migrations add AddedAnswerModel --project QuestionService --output-dir Data/Migrations`

@@ -30,8 +30,8 @@ public class Question
    
     public int Votes { get; set; }
     
-    // public int AnswerCount { get; set; }
+     public int AnswerCount { get; set; }
     
     // navigation properties
-    //public List<Answer> Answers { get; set; } = [];
+    public List<Answer> Answers { get; set; } = [];
 }

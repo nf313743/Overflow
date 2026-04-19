@@ -6,6 +6,9 @@
     <Project Path="QuestionService\QuestionService.csproj" />
     <Project Path="SearchService/SearchService.csproj" />
   </Folder>
+  <Folder Name="/SolutionFolder/">
+    <File Path="README.md" />
+  </Folder>
   <Project Path="Overflow.AppHost/Overflow.AppHost.csproj" />
   <Project Path="Overflow.ServiceDefaults/Overflow.ServiceDefaults.csproj" />
 </Solution>
