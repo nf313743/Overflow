@@ -1,9 +1,21 @@
 #pragma warning disable ASPIRECERTIFICATES001
 var builder = DistributedApplication.CreateBuilder(args);
 
+var compose = builder.AddDockerComposeEnvironment("production")
+    // .WithSshDeploySupport()
+    .WithDashboard(dashboard => dashboard.WithHostPort(8080));
+
 var keycloak = builder.AddKeycloak("keycloak", 6001)
-    .WithoutHttpsCertificate()
-    .WithDataVolume("keycloack-data");
+    .WithDataVolume("keycloak-data")
+    .WithRealmImport("../infra/realms")
+    .WithEnvironment("KC_HTTP_ENABLED", "true")
+    .WithEnvironment("KC_HOSTNAME_STRICT", "false")
+    .WithEndpoint(6001, 8080, "keycloak", isExternal:true);
+
+    // .WithEnvironment("VIRTUAL_HOST", "overflow-id.trycatchlearn.com")
+    // .WithEnvironment("VIRTUAL_PORT", "8080")
+    // .WithEnvironment("LETSENCRYPT_HOST", "overflow-id.trycatchlearn.com")
+    // .WithEnvironment("LETSENCRYPT_EMAIL", "trycatchlearn@outlook.com");
 
 var postgres = builder.AddPostgres("postgres", port: 5432)
     .WithDataVolume("postgres-data")
@@ -12,8 +24,10 @@ var postgres = builder.AddPostgres("postgres", port: 5432)
 var typesenseApiKey = builder.AddParameter("typesense-api-key", secret: true);
 
 var typesense = builder.AddContainer("typesense", "typesense/typesense", "29.0")
-    .WithArgs("--data-dir", "/data", "--api-key", "abc", "--enable-cors")
     .WithVolume("typesense-data", "/data")
+    .WithEnvironment("TYPESENSE_DATA_DIR", "/data")
+    .WithEnvironment("TYPESENSE_ENABLE_CORS", "true")
+    .WithEnvironment("TYPESENSE_API_KEY", typesenseApiKey)
     .WithHttpEndpoint(8108, 8108, name: "typesense");
 
 var typesenseContainer = typesense.GetEndpoint("typesense");
@@ -27,7 +41,7 @@ var rabbitmq = builder.AddRabbitMQ("messaging")
     .WithManagementPlugin(port: 15672);
 
 
-var questionServices = builder.AddProject<Projects.QuestionService>("question-svc")
+var questionService = builder.AddProject<Projects.QuestionService>("question-svc")
     .WithReference(keycloak)
     .WithReference(questionDb)
     .WithReference(rabbitmq)
@@ -35,11 +49,23 @@ var questionServices = builder.AddProject<Projects.QuestionService>("question-sv
     .WaitFor(questionDb)
     .WaitFor(rabbitmq);
 
-var searchServices = builder.AddProject<Projects.SearchService>("search-svc")
+var searchService = builder.AddProject<Projects.SearchService>("search-svc")
     .WithEnvironment("typesense-api-key", typesenseApiKey)
     .WithReference(typesenseContainer)
     .WithReference(rabbitmq)
     .WaitFor(typesense)
     .WaitFor(rabbitmq);
+
+var yarp = builder.AddYarp("gateway")
+    .WithConfiguration(yarpBuilder =>
+    {
+        yarpBuilder.AddRoute("/questions/{**catch-all}", questionService);
+        yarpBuilder.AddRoute("/tags/{**catch-all}", questionService);
+        yarpBuilder.AddRoute("/search/{**catch-all}", searchService);
+    })
+    .WithoutHttpsCertificate()
+    .WithEnvironment("ASPNETCORE_URLS", "http://*:8001")
+    .WithEndpoint(port: 8001, scheme: "http", targetPort: 8001, name: "gateway", isExternal: true)
+    .WithContainerRuntimeArgs("--add-host=host.docker.internal:host-gateway");
 
 builder.Build().Run();
