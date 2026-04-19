@@ -8,15 +8,15 @@ var compose = builder.AddDockerComposeEnvironment("production")
     .WithDashboard(dashboard => dashboard.WithHostPort(8080));
 
 var keycloak = builder.AddKeycloak("keycloak", 6001)
-    // .WithEndpoint(6001, 8080, "keycloak", isExternal: true)
-   // .WithoutHttpsCertificate()
     .WithDataVolume("keycloak-data")
     .WithRealmImport("../infra/realms")
     .WithEnvironment("KC_HTTP_ENABLED", "true")
     .WithEnvironment("KC_HOSTNAME_STRICT", "false")
     .WithEnvironment("VIRTUAL_HOST", "id.overflow.local")
     .WithEnvironment("VIRTUAL_PORT", "8080");
-   // .WithContainerRuntimeArgs("--add-host=id.overflow.local:host-gateway");
+// .WithEndpoint(6001, 8080, "keycloak", isExternal: true)
+// .WithoutHttpsCertificate()   
+// .WithContainerRuntimeArgs("--add-host=id.overflow.local:host-gateway");
     // .WithEnvironment("LETSENCRYPT_HOST", "overflow-id.trycatchlearn.com")
     // .WithEnvironment("LETSENCRYPT_EMAIL", "trycatchlearn@outlook.com");
 
