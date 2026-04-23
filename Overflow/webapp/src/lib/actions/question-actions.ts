@@ -13,6 +13,18 @@ export async function getQuestions(tag?: string): Promise<Question[]>{
     return response.json()
 }
 
+export async function getQuestionById(id: string): Promise<Promise<Question>> {
+
+    const url = `http://localhost:8001/questions/${id}`
+
+
+    const response = await fetch(url)
+
+    if(!response.ok) throw new Error('Failed to fetch questions')
+
+    return response.json()
+}
+
 // export async function getQuestionById(id: string): Promise<FetchResponse<Question>> {
 //     const {data: question, error: questionError} =
 //         await fetchClient<Question>(`/questions/${id}`, 'GET');
