@@ -15,7 +15,7 @@ builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
 
 
-var typesenseUri = builder.Configuration["services:typesense:typesense:0"];
+var typesenseUri = builder.Configuration["services:typesense:http:0"];
 if (string.IsNullOrEmpty(typesenseUri))
 {
     throw new InvalidOperationException("Typesense URI is not set");
