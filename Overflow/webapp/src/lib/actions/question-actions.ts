@@ -1,28 +1,23 @@
-import { Question } from "../types";
+import {FetchResponse, Question} from "../types";
+import {fetchClient} from "@/lib/fetchClient";
 
-export async function getQuestions(tag?: string): Promise<Question[]>{
+export async function getQuestions(tag?: string){
     
-    let url = 'http://localhost:8001/questions'
-    if(tag)
-        url += '?tag=' + tag
+    let url = '/questions'
+    if(tag) url += '?tag=' + tag
     
-    const response = await fetch(url)
-    
-    if(!response.ok) throw new Error('Failed to fetch questions') 
-        
-    return response.json()
+    const response =  await fetchClient<Question[]>(url, 'GET')
+
+    return response.data!
 }
 
-export async function getQuestionById(id: string): Promise<Promise<Question>> {
+export async function getQuestionById(id: string) {
+    const response =  await fetchClient<Question>(`/questions/${id}`, 'GET')
+    return response.data!
+}
 
-    const url = `http://localhost:8001/questions/${id}`
-
-
-    const response = await fetch(url)
-
-    if(!response.ok) throw new Error('Failed to fetch questions')
-
-    return response.json()
+export async function searchQuestions(query: string) {
+    return fetchClient<Question[]>(`/search?query=${query}`, 'GET');
 }
 
 // export async function getQuestionById(id: string): Promise<FetchResponse<Question>> {

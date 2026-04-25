@@ -1,6 +1,6 @@
 'use server';
 
-// import {fetchClient} from "@/lib/fetchClient";
+ import {fetchClient} from "@/lib/fetchClient";
 // import {auth} from "@/auth";
 
 export async function testAuth() {

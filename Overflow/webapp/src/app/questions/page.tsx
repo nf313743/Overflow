@@ -1,7 +1,6 @@
 
 import {getQuestions} from "@/lib/actions/question-actions";
 import QuestionCard from "@/app/questions/QuestionCard";
-// import QuestionsHeader from "@/app/questions/QuestionsHeader";
 // import AppPagination from "@/components/AppPagination";
 import {QuestionParams} from "@/lib/types";
 import QuestionsHeader from "@/app/questions/QuestionsHeader";
