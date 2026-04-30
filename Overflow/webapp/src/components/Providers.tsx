@@ -1,35 +1,37 @@
-'use client'
+'use client';
 
-import * as React from "react";
-
-// 1. import `HeroUIProvider` component
 import {HeroUIProvider, ToastProvider} from "@heroui/react";
+import {ReactNode, useEffect} from "react";
 import {useRouter} from "next/navigation";
 import {ThemeProvider} from "next-themes";
 import {useTagStore} from "@/lib/hooks/useTagStore";
-import {useEffect} from "react";
 import {getTags} from "@/lib/actions/tag-actions";
+import {handleError} from "@/lib/util";
 
-export default function Providers({children}: { children: React.ReactNode }) {
+export default function Providers({children}: {children: ReactNode}) {
     const router = useRouter();
-    const setTags = useTagStore(state => state.setTags);
-    
+    const setTags = useTagStore((state) => state.setTags);
+
     useEffect(() => {
         const loadTags = async () => {
-            const {data:tags} = await getTags();
-            if(tags) setTags(tags);
-        }
-        
+            const {data: tags, error} = await getTags();
+            if (error) handleError(error);
+            if (tags) setTags(tags);
+        };
+
         void loadTags();
-    },[setTags])
-    
+    }, [setTags]);
 
     return (
-        <HeroUIProvider navigate={router.push} className="h-full flex flex-col">
+        <HeroUIProvider navigate={router.push} className='h-full flex flex-col'>
             <ToastProvider />
             <ThemeProvider
                 attribute='class'
-                defaultTheme="light">
+                defaultTheme='light'
+                disableTransitionOnChange={true}
+                enableSystem={false}
+                storageKey='theme'
+            >
                 {children}
             </ThemeProvider>
         </HeroUIProvider>

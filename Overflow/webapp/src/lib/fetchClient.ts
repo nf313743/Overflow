@@ -1,6 +1,6 @@
 import {notFound} from "next/navigation";
-// import {auth} from "@/auth";
-// import {apiConfig} from "@/lib/config";
+import {auth} from "@/auth";
+import {apiConfig} from "@/lib/config";
 import {FetchResponse} from "@/lib/types";
 
 export async function fetchClient<T>(
@@ -9,17 +9,16 @@ export async function fetchClient<T>(
     options: Omit<RequestInit, 'body'> & { body?: unknown } = {}
 ): Promise<FetchResponse<T>> {
     const { body, ...rest } = options;
-    const apiUrl = process.env.API_URL
-    // const apiUrl = apiConfig.baseUrl;
+     const apiUrl = apiConfig.baseUrl;
 
     if (!apiUrl) throw new Error('Missing API URL');
-    // const session = await auth();
+    const session = await auth();
 
     const headers: HeadersInit = {
         'Content-Type': 'application/json',
-        // ...(session?.accessToken
-        //     ? { Authorization: `Bearer ${session.accessToken}` }
-        //     : {}),
+        ...(session?.accessToken
+            ? { Authorization: `Bearer ${session.accessToken}` }
+            : {}),
         ...(rest.headers || {})
     }
 

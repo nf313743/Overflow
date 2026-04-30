@@ -1,10 +1,10 @@
 import ErrorButtons from "@/app/session/ErrorButtons";
 import AuthTestButton from "@/app/session/AuthTestButton";
-// import {auth} from "@/auth";
+ import {auth} from "@/auth";
 import {Snippet} from "@heroui/snippet";
 
 export default async function Page() {
-    // const session = await auth();
+    const session = await auth();
 
     return (
         <div className='px-6'>
@@ -19,7 +19,7 @@ export default async function Page() {
                     base: 'w-full mt-4',
                     pre: 'text-wrap whitespace-pre-wrap break-all'
                 }}>
-                {/*{JSON.stringify(session, null, 2)}*/}
+                {JSON.stringify(session, null, 2)}
             </Snippet>
 
             <div className='flex items-center gap-3 justify-center mt-6'>
