@@ -9,7 +9,7 @@ export async function fetchClient<T>(
     options: Omit<RequestInit, 'body'> & { body?: unknown } = {}
 ): Promise<FetchResponse<T>> {
     const { body, ...rest } = options;
-     const apiUrl = apiConfig.baseUrl;
+    const apiUrl = apiConfig.baseUrl;
 
     if (!apiUrl) throw new Error('Missing API URL');
     const session = await auth();

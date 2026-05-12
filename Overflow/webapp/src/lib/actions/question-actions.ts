@@ -1,5 +1,7 @@
+"use server";
 import {FetchResponse, Question} from "../types";
 import {fetchClient} from "@/lib/fetchClient";
+import {QuestionSchema} from "@/lib/schemas/questionSchema";
 
 export async function getQuestions(tag?: string){
     
@@ -19,6 +21,15 @@ export async function getQuestionById(id: string) {
 export async function searchQuestions(query: string) {
     return fetchClient<Question[]>(`/search?query=${query}`, 'GET');
 }
+
+export async function postQuestion(question: QuestionSchema) {
+    return await fetchClient<Question>(`/questions`, 'POST', {body: question});
+}
+
+export async function updateQuestion(question: QuestionSchema, id: string) {
+    return fetchClient(`/questions/${id}`, 'PUT', {body: question})
+}
+
 
 // export async function getQuestionById(id: string): Promise<FetchResponse<Question>> {
 //     const {data: question, error: questionError} =
